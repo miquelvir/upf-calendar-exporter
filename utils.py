@@ -81,3 +81,20 @@ def replace_entities(text: str) -> str:
     :return: same string with all html entities replaced by standard chars
     """
     return html.unescape(text)
+
+
+def ask_yes_no(question: str) -> bool:
+    """
+        asks for a valid yes&no answer
+
+        :return: bool
+        """
+    while True:  # ask until return
+        answer = input(question + " [yes, y, 1; no, n, 0] ")
+
+        if answer.lower() == "yes" or answer.lower() == "y" or answer == "1":
+            return True
+        elif answer.lower() == "no" or answer.lower() == "n" or answer == "0":
+            return False
+        else:
+            print("invalid answer")

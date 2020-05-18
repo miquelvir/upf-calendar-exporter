@@ -5,6 +5,7 @@ from typing import List
 
 CALENDAR_HEADERS = ["Subject", "Start Date", "Start Time", "End Date", "End Time", "All Day Event", "Description",
                     "Location", "Private"]
+ROW_TITLE_INDEX = -1  # index
 
 
 def dict_to_valid_rows(data: List[dict]) -> List[list]:
@@ -57,19 +58,48 @@ def dict_to_valid_rows(data: List[dict]) -> List[list]:
                    False,  # not full day - we can't know from provided info
                    description,  # description - additional info
                    session[ROOM] if ROOM in session_keys else "unknown",   # room - include only if it is known
-                   True]  # private (by default)
+                   True,  # private (by default)
+                   session[TITLE]]  # for internal use, title without type
 
         row_list.append(new_row)
 
     return row_list
 
 
-def export_calendar(data: List[dict], file_path: str) -> bool:
+def get_separated_rows(rows: List[list]) -> dict:
+    """
+    returns a dictionary with name: rows for each class
+
+    :param rows: list of lists (matrix) for the csv file rows and columns
+    :return: dict of list of lists (matrix) for the csv file of each class
+    """
+
+    result = {}
+
+    for session in rows:
+        if session[ROW_TITLE_INDEX] not in result:  # first session of the class, create key in dict and start list
+            result[session[ROW_TITLE_INDEX]] = [session]
+        else:  # elements of same class already in list, append element
+            result[session[ROW_TITLE_INDEX]].append(session)
+
+    return result
+
+
+def export_calendar(data: List[dict], file_path: str, separate: bool) -> bool:
     """
 
     :param data: list of dict representing valid sessions (with title, start time and end time at least)
-    :param file_path: a valid verified path
+    :param file_path: a valid verified path without .csv
+    :param separate: true if additionally a csv for each course must be created, false otherwise
     :return: true if successful, false otherwise
     """
 
-    return export_csv(dict_to_valid_rows(data), file_path)  # returns true if successful
+    rows = dict_to_valid_rows(data)
+
+    if separate:
+        separated_rows = get_separated_rows(rows)
+        for i, classe in enumerate(separated_rows.values()):
+            if len(classe) > 1:  # only the header takes 1 space; aka if it is not empty
+                export_csv(classe, "{}_{}.csv".format(file_path, str(i)))
+
+    return export_csv(rows, "{}_all.csv".format(file_path))  # returns true if successful
