@@ -4,6 +4,7 @@ from scraper import request_calendar, clean_received_sessions
 from utils import *
 from datetime import datetime
 from typing import Tuple
+from legal_notice import *
 
 URL_CAMPUS_GLOBAL = "https://campusglobal.upf.edu/"
 URL_IMPORT_CALENDAR = "https://calendar.google.com/calendar/r/settings/export"
@@ -38,7 +39,7 @@ def guide_user_start() -> Tuple[str, datetime, datetime, str]:
 
     print("customise parameters")
     first_date = ask_date("first date to import")
-    last_date = ask_date("last date to import:")
+    last_date = ask_date("last date to import:", greater_than=int(first_date.timestamp()))
     print_progress_bar(5, 6)
 
     print("select directory")
@@ -77,7 +78,16 @@ def guide_user_end() -> None:
     launch_google_calendar()
 
 
+def show_troubleshooting_steps() -> None:
+    print("- verify that you have followed the steps correctly in general")
+    print("- verify that you have not added any space when entering the JSESSIONID")
+    print("- verify that you have clicked 'Veure calendari' before copying the JSESSIONID and trying to request the "
+          "calendar")
+
+
 def main():
+    legal_notice()
+
     print("this script will help you export your UPF Calendar to Google Calendar (or similar)")
     print_separator()
 
@@ -89,7 +99,12 @@ def main():
 
     if status:
         guide_user_end()
-        print_separator()
+    else:
+        print("error during the process, troubleshooting steps below")
+        show_troubleshooting_steps()
+    print_separator()
+
+    input("enter to exit...")
 
 
 if __name__ == "__main__":

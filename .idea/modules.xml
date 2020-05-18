@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/calendarscrapper.iml" filepath="$PROJECT_DIR$/.idea/calendarscrapper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/upf-calendar-exporter.iml" filepath="$PROJECT_DIR$/.idea/upf-calendar-exporter.iml" />
     </modules>
   </component>
 </project>

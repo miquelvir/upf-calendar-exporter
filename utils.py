@@ -23,27 +23,31 @@ def print_separator():
     print("**********************************************************************************")
 
 
-def ask_date(text: str) -> datetime:
+def ask_date(text: str, greater_than: int = -1) -> datetime:
     """
     asks for a valid datetime until given one, and returns it
 
     :param text: question/hint
+    :param greater_than: selected date must be after this epoch time
     :return: datetime object set to time of user input
     """
-    dt = None
+    date = None
 
     valid = False  # while loop controller
     while not valid:
         print(text)
         date_entry = input('date in YYYY-MM-DD format (year in 4 digits, month in 2 digits, day in 2 digits): ')
         try:
-            dt = datetime.strptime(date_entry, "%Y-%m-%d")
-            print(dt)
-            valid = True  # stop asking
+            date = datetime.strptime(date_entry, "%Y-%m-%d")
+            print(text, date)
+            if date.timestamp() > greater_than:
+                valid = True  # stop asking
+            else:
+                print("date is not valid, must be after the start date")
         except ValueError:
             print("date is not valid, use correct format")
 
-    return dt
+    return date
 
 
 def ask_path() -> str:
