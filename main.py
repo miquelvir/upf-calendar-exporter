@@ -4,7 +4,6 @@ from scraper import request_calendar, clean_received_sessions
 from utils import *
 from datetime import datetime
 from typing import Tuple
-from legal_notice import *
 
 URL_CAMPUS_GLOBAL = "https://campusglobal.upf.edu/"
 URL_IMPORT_CALENDAR = "https://calendar.google.com/calendar/r/settings/export"
@@ -86,8 +85,12 @@ def show_troubleshooting_steps() -> None:
 
 
 def main():
-    legal_notice()
-
+    print("""
+    
+    a project by @miquelvir
+    ***********************
+    
+    """)
     print("this script will help you export your UPF Calendar to Google Calendar (or similar)")
     print_separator()
 
