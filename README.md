@@ -6,4 +6,4 @@ this works for any student of UPF which accesses its calendar using https://camp
 
 this is not a project endorsed by UPF; changes in their UPF's end might break the current solution
 
-report bugs through comments if possible
+report bugs through comments if possible - be nice, it is a one day built :)
