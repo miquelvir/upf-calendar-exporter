@@ -9,7 +9,7 @@ HOW TO EXECUTE
 
 - for Windows, use the .exe executables in ./builds
 
-- for other devices (including Windows aswell), Git clone the project and execute main.py
+- for other devices (including Windows as well), Git clone the project and execute main.py
 ***
 
 this is not a project endorsed by UPF; changes in their UPF's end might break the current solution
