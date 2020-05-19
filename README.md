@@ -1,6 +1,6 @@
 # upf-calendar-exporter
 
-exports UPF University calendar to google calendar
+exports UPF University calendar to Google Calendar (and similar services)
 
 this works for any student of UPF which accesses its calendar using https://campusglobal.upf.edu/
 
