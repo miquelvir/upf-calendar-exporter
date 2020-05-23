@@ -12,7 +12,7 @@ HOW TO EXECUTE
 - for other devices (including Windows as well), Git clone the project and execute main.py
 ***
 
-this is not a project endorsed by UPF; changes in their UPF's end might break the current solution
+this is not a project endorsed by UPF; changes in UPF's end might break the current solution
 
 
 report bugs through comments if possible - be nice, it is a one day built :)
