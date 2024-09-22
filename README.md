@@ -7,9 +7,10 @@ this works for any student of UPF which accesses its calendar using https://camp
 ***
 HOW TO EXECUTE
 
-- for Windows, use the .exe executables in ./builds
+Git clone the project and execute main.py
 
-- for other devices (including Windows as well), Git clone the project and execute main.py; if having problems when executing in Apple devices, refer to https://github.com/miquelvir/upf-calendar-exporter/issues/1
+if having problems when executing in Apple devices, refer to https://github.com/miquelvir/upf-calendar-exporter/issues/1
+
 ***
 
 this is not a project endorsed by UPF; changes in UPF's end might break the current solution
