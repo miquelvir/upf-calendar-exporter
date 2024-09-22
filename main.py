@@ -5,7 +5,7 @@ from utils import *
 from datetime import datetime
 from typing import Tuple
 
-URL_CAMPUS_GLOBAL = "https://campusglobal.upf.edu/"
+URL_CAMPUS_GLOBAL = "https://www.upf.edu/intranet/campus-global/"
 URL_IMPORT_CALENDAR = "https://calendar.google.com/calendar/r/settings/export"
 
 
