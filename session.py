@@ -1,3 +1,6 @@
+from common import HOLIDAY
+
+
 def is_valid_session(session: dict) -> bool:
     """
     checks if passed dict has enough info to display event
@@ -17,3 +20,16 @@ def is_valid_session(session: dict) -> bool:
             return False
 
     return True  # at this level, all required keys were found
+
+
+def is_holiday(session: dict) -> bool:
+    """
+    checks if passed dict is a holiday or non-teaching day rather than a real session
+
+    UPF returns these with placeholder 11:00-19:00 times, so they clutter the calendar if exported
+
+    :param session: dict representing a session
+    :return: True if it is a holiday or non-teaching day, False otherwise
+    """
+
+    return session.get(HOLIDAY) is True

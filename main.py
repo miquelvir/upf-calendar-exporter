@@ -1,4 +1,5 @@
 import webbrowser
+from os import path
 from calendar_exporter import export_calendar
 from scraper import request_calendar, clean_received_sessions
 from utils import *
@@ -17,7 +18,7 @@ def launch_google_calendar():
     webbrowser.open(URL_IMPORT_CALENDAR, new=2)  # 2 requires new tab
 
 
-def guide_user_start() -> Tuple[str, datetime, datetime, str, bool]:
+def guide_user_start() -> Tuple[str, datetime, datetime, str, bool, bool]:
     print("steps")
     print_progress_bar(0, 7)
 
@@ -42,17 +43,19 @@ def guide_user_start() -> Tuple[str, datetime, datetime, str, bool]:
     print_progress_bar(5, 7)
 
     print("select directory")
-    saving_path = ask_path() + "\\calendar_export"
+    saving_path = path.join(ask_path(), "calendar_export")
     print_progress_bar(6, 7)
 
     print("additional options")
     separate = ask_yes_no("export subjects in separate files? ")
+    keep_holidays = ask_yes_no("include holidays and non-teaching days? ")
     print_progress_bar(7, 7)
 
-    return jsessionid, first_date, last_date, saving_path, separate
+    return jsessionid, first_date, last_date, saving_path, separate, keep_holidays
 
 
-def process(jsessionid: str, first_date: datetime, last_date: datetime, saving_path: str, separate: bool) -> bool:
+def process(jsessionid: str, first_date: datetime, last_date: datetime, saving_path: str, separate: bool,
+            keep_holidays: bool) -> bool:
     print_progress_bar(0, 3)
 
     print("posting ajax request...")
@@ -61,7 +64,7 @@ def process(jsessionid: str, first_date: datetime, last_date: datetime, saving_p
     print_progress_bar(1, 3)
 
     print("cleaning received info...")
-    clean_received_sessions(data)
+    clean_received_sessions(data, keep_holidays)
     print("...cleaning finished")
     print_progress_bar(2, 3)
 
@@ -99,10 +102,10 @@ def main():
     print("this script will help you export your UPF Calendar to Google Calendar (or similar)")
     print_separator()
 
-    jsessionid, first_date, last_date, saving_path, separate = guide_user_start()
+    jsessionid, first_date, last_date, saving_path, separate, keep_holidays = guide_user_start()
     print_separator()
 
-    status = process(jsessionid, first_date, last_date, saving_path, separate)
+    status = process(jsessionid, first_date, last_date, saving_path, separate, keep_holidays)
     print_separator()
 
     if status:
