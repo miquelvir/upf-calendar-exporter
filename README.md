@@ -12,6 +12,13 @@ Git clone the project and execute main.py
 if having problems when executing in Apple devices, refer to https://github.com/miquelvir/upf-calendar-exporter/issues/1
 
 ***
+BROWSER VERSION
+
+if you would rather not install Python or copy a JSESSIONID, there is a userscript version of this exporter: https://github.com/bdim404/upf-calendar-userscript
+
+it runs on the timetable page itself, so the browser's existing session authenticates the request. it exports the same Google Calendar csv, plus an .ics file for Apple Calendar, with a date range, subject exclusion and a holiday filter
+
+***
 
 this is not a project endorsed by UPF; changes in UPF's end might break the current solution
 
