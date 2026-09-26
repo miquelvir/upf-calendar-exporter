@@ -3,12 +3,12 @@ from requests import Session, get
 from bs4 import BeautifulSoup
 import json
 
-from common import TEACHERS
-from session import is_valid_session
+from common import TEACHERS, HOLIDAY
+from session import is_valid_session, is_holiday
 from utils import replace_entities
 from typing import List
 
-AJAX_REQUEST_URL = 'https://gestioacademica.upf.edu/pds/control/[Ajax]selecionarRangoHorarios?rnd=4236.0&start={' \
+AJAX_REQUEST_URL = 'https://secretariavirtual.upf.edu/pds/control/[Ajax]selecionarRangoHorarios?rnd=4236.0&start={' \
                    '}&end={}'
 
 
@@ -32,8 +32,8 @@ def request_calendar(jsessionid: str, start: str, end: str) -> List[dict]:
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive",
             "Content-Type": "application/json; charset=uft-8",
-            "Host": "gestioacademica.upf.edu",
-            "Referer": "https://gestioacademica.upf.edu/pds/control/PubliHoraAlumCalendario?rnd=176.0",
+            "Host": "secretariavirtual.upf.edu",
+            "Referer": "https://secretariavirtual.upf.edu/pds/control/PubliHoraAlumCalendario?rnd=176.0",
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
@@ -44,22 +44,32 @@ def request_calendar(jsessionid: str, start: str, end: str) -> List[dict]:
     return json.loads(response.text)
 
 
-def clean_received_sessions(data: List[dict]) -> None:
+def clean_received_sessions(data: List[dict], keep_holidays: bool = False) -> None:
     """
-    cleans received data (I/O): removes events without minimum info and replaces html entities (otherwise encoding
-    is not correct when exporting)
+    cleans received data (I/O): removes events without minimum info, optionally removes holidays and non-teaching
+    days, and replaces html entities (otherwise encoding is not correct when exporting)
 
     :param data: list of dict representing sessions
+    :param keep_holidays: true to keep holidays and non-teaching days, false to remove them
     """
 
-    for i, session in enumerate(data):
+    cleaned = []
+
+    for session in data:
         if not is_valid_session(session):
-            data.pop(i)  # remove dictionary, it does not have enough info to display event
-        else:
-            # is valid event, should clean html entities
-            for key in session.keys():
-                if type(session[key]) is str:  # only strings can have html entities
-                    session[key] = replace_entities(session[key])
-                elif key == TEACHERS and len(session[TEACHERS]) > 0:  # replace entities for each teacher name
-                    map(replace_entities, session[TEACHERS])
+            continue  # skip dictionary, it does not have enough info to display event
+
+        if not keep_holidays and is_holiday(session):
+            continue  # skip holiday/non-teaching day, it is not a real session
+
+        # is valid event, should clean html entities
+        for key in session.keys():
+            if type(session[key]) is str:  # only strings can have html entities
+                session[key] = replace_entities(session[key])
+            elif key == TEACHERS and len(session[TEACHERS]) > 0:  # replace entities for each teacher name
+                session[TEACHERS] = [replace_entities(teacher) for teacher in session[TEACHERS]]
+
+        cleaned.append(session)
+
+    data[:] = cleaned  # replace contents in place, callers keep their reference
 
