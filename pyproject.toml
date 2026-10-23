@@ -1,0 +1,24 @@
+[project]
+name = "upf-calendar-exporter"
+version = "2.0.0"
+description = "Exports the UPF class timetable to Google Calendar (csv)"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32",
+    "websocket-client>=1.8",
+]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.10",
+    "ruff>=0.6",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"

@@ -8,6 +8,10 @@ CALENDAR_HEADERS = ["Subject", "Start Date", "Start Time", "End Date", "End Time
 ROW_TITLE_INDEX = -1  # index
 
 
+def has_text(session: dict, key: str) -> bool:
+    return key in session and str(session[key]).strip() != ""  # UPF sends " " for empty fields
+
+
 def dict_to_valid_rows(data: List[dict]) -> List[list]:
     """
     transforms imported data to the Google Calendar format
@@ -15,10 +19,11 @@ def dict_to_valid_rows(data: List[dict]) -> List[list]:
     refer here (format specs): https://support.google.com/calendar/answer/37118?co=GENIE.Platform%3DDesktop&hl=en&oco=0
 
     :param data: list of dict representing valid sessions (with title, start time and end time at least)
-    :return:  list of lists (matrix) for the csv file rows and columns
+    :return:  list of lists (matrix) for the csv file rows (without headers); the last column of each row is the
+              title without type, for internal use
     """
 
-    row_list = [CALENDAR_HEADERS]  # first row must be the headers
+    row_list = []
 
     for session in data:
         # get basic arguments
@@ -28,26 +33,25 @@ def dict_to_valid_rows(data: List[dict]) -> List[list]:
 
         # search if there are any additional parameters and add them
         description = ""
-        session_keys = session.keys()
 
-        if TYPE in session_keys and session[TYPE] is not "":
+        if has_text(session, TYPE):
             full_title += ' [{}]'.format(session[TYPE])
 
         description += full_title + NEWLINE + NEWLINE
 
-        if GROUP in session_keys and str(session[GROUP]) is not "":
+        if has_text(session, GROUP):
             description += str(session[GROUP]) + NEWLINE
 
-        if TEACHERS in session_keys and len(session[TEACHERS]) > 0:
-            description += str(session[TEACHERS]) + NEWLINE
+        if TEACHERS in session and len(session[TEACHERS]) > 0:
+            description += ", ".join(str(teacher) for teacher in session[TEACHERS]) + NEWLINE
 
-        if NOTES1 in session_keys and session[NOTES1] is not "":
+        if has_text(session, NOTES1):
             description += session[NOTES1] + NEWLINE
 
-        if NOTES2 in session_keys and session[NOTES2] is not "":
+        if has_text(session, NOTES2):
             description += session[NOTES2] + NEWLINE
 
-        if CODE in session_keys and str(session[CODE]) is not "":
+        if has_text(session, CODE):
             description += str(session[CODE]) + NEWLINE
 
         new_row = [full_title,  # title (with session type if available)
@@ -57,7 +61,7 @@ def dict_to_valid_rows(data: List[dict]) -> List[list]:
                    get_time(end),  # end time
                    False,  # not full day - we can't know from provided info
                    description,  # description - additional info
-                   session[ROOM] if ROOM in session_keys else "unknown",   # room - include only if it is known
+                   session[ROOM] if has_text(session, ROOM) else "unknown",  # room - include only if it is known
                    True,  # private (by default)
                    session[TITLE]]  # for internal use, title without type
 
@@ -85,6 +89,16 @@ def get_separated_rows(rows: List[list]) -> dict:
     return result
 
 
+def to_csv_rows(rows: List[list]) -> List[list]:
+    """
+    adds the headers and removes the internal column, Google Calendar rejects unknown columns
+
+    :param rows: rows as returned by dict_to_valid_rows
+    :return: rows ready to be written to a csv file
+    """
+    return [CALENDAR_HEADERS] + [row[:ROW_TITLE_INDEX] for row in rows]
+
+
 def export_calendar(data: List[dict], file_path: str, separate: bool) -> bool:
     """
 
@@ -99,7 +113,6 @@ def export_calendar(data: List[dict], file_path: str, separate: bool) -> bool:
     if separate:
         separated_rows = get_separated_rows(rows)
         for i, classe in enumerate(separated_rows.values()):
-            if len(classe) > 1:  # only the header takes 1 space; aka if it is not empty
-                export_csv(classe, "{}_{}.csv".format(file_path, str(i)))
+            export_csv(to_csv_rows(classe), "{}_{}.csv".format(file_path, str(i)))
 
-    return export_csv(rows, "{}_all.csv".format(file_path))  # returns true if successful
+    return export_csv(to_csv_rows(rows), "{}_all.csv".format(file_path))  # returns true if successful

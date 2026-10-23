@@ -1,0 +1,24 @@
+name: release
+
+# pushing a tag like v2.0.0 builds the exe and attaches it to a GitHub release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: build exe
+        shell: pwsh
+        run: ./build.ps1
+      - name: publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:GITHUB_REF_NAME dist/upf-calendar-exporter.exe --generate-notes
