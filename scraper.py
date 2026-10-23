@@ -1,47 +1,58 @@
-import html
-from requests import Session, get
-from bs4 import BeautifulSoup
+from requests import Session
+from requests.exceptions import RequestException
 import json
 
-from common import TEACHERS, HOLIDAY
+from common import TEACHERS
 from session import is_valid_session, is_holiday
 from utils import replace_entities
-from typing import List
+from typing import Dict, List
 
 AJAX_REQUEST_URL = 'https://secretariavirtual.upf.edu/pds/control/[Ajax]selecionarRangoHorarios?rnd=4236.0&start={' \
                    '}&end={}'
+REFERER_URL = 'https://secretariavirtual.upf.edu/pds/control/PubliHoraAlumCalendario?rnd=5732.0'
 
 
-def request_calendar(jsessionid: str, start: str, end: str) -> List[dict]:
+class CalendarRequestError(Exception):
+    pass
+
+
+def request_calendar(cookies: Dict[str, str], start: str, end: str) -> List[dict]:
     """
 
-    posts ajax request to get calendar info and returns it as a list of dicts
+    requests calendar info with the ajax endpoint used by the calendar page and returns it as a list of dicts
 
-    :param jsessionid: JSESSIONID parameter for ajax post headers
+    :param cookies: session cookies; JSESSIONID alone is not enough, the load balancer ROUTEID cookie is needed to
+                    reach the server holding the session
     :param start: epoch start time of events to import
     :param end: epoch end time of events to import
     :return: list of dicts, each dict representing an event
     """
     session = Session()
+    session.cookies.update(cookies)
 
-    response = session.post(
-        url=AJAX_REQUEST_URL.format(start, end),
-        headers={
-            "Cookie": "JSESSIONID={};".format(jsessionid),
-            "Accept": "*/*",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json; charset=uft-8",
-            "Host": "secretariavirtual.upf.edu",
-            "Referer": "https://secretariavirtual.upf.edu/pds/control/PubliHoraAlumCalendario?rnd=176.0",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "X-Requested-With": "XMLHttpRequest"
-        }
-    )
+    try:
+        response = session.get(
+            url=AJAX_REQUEST_URL.format(start, end),
+            headers={
+                "Accept": "*/*",
+                "Content-Type": "application/json; charset=utf-8",
+                "Referer": REFERER_URL,
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            timeout=60
+        )
+    except RequestException as e:
+        raise CalendarRequestError("could not reach secretariavirtual.upf.edu: {}".format(e)) from e
 
-    return json.loads(response.text)
+    try:
+        data = json.loads(response.text)
+    except ValueError:  # an html page, 'Sesión expirada'
+        raise CalendarRequestError("the session is not valid (secretariavirtual answered 'session expired')") from None
+
+    if isinstance(data, dict) and "error" in data:  # the calendar was not opened before requesting it
+        raise CalendarRequestError("secretariavirtual answered: {}".format(data["error"]))
+
+    return data
 
 
 def clean_received_sessions(data: List[dict], keep_holidays: bool = False) -> None:
@@ -67,9 +78,8 @@ def clean_received_sessions(data: List[dict], keep_holidays: bool = False) -> No
             if type(session[key]) is str:  # only strings can have html entities
                 session[key] = replace_entities(session[key])
             elif key == TEACHERS and len(session[TEACHERS]) > 0:  # replace entities for each teacher name
-                session[TEACHERS] = [replace_entities(teacher) for teacher in session[TEACHERS]]
+                session[TEACHERS] = [replace_entities(str(teacher)) for teacher in session[TEACHERS]]
 
         cleaned.append(session)
 
     data[:] = cleaned  # replace contents in place, callers keep their reference
-

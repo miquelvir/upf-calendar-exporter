@@ -1,6 +1,6 @@
 import html
 from datetime import datetime
-from os import path
+from os import getcwd, path
 
 NEWLINE = '\n'
 
@@ -23,22 +23,23 @@ def print_separator():
     print("**********************************************************************************")
 
 
-def ask_date(text: str, greater_than: int = -1) -> datetime:
+def ask_date(text: str, default: datetime, greater_than: int = -1) -> datetime:
     """
     asks for a valid datetime until given one, and returns it
 
     :param text: question/hint
+    :param default: date used when the user just presses enter
     :param greater_than: selected date must be after this epoch time
     :return: datetime object set to time of user input
     """
-    date = None
+    date = default
 
     valid = False  # while loop controller
     while not valid:
         print(text)
-        date_entry = input('date in YYYY-MM-DD format (year in 4 digits, month in 2 digits, day in 2 digits): ')
+        date_entry = input('date in YYYY-MM-DD format, press enter for {}: '.format(default.strftime("%Y-%m-%d")))
         try:
-            date = datetime.strptime(date_entry, "%Y-%m-%d")
+            date = datetime.strptime(date_entry.strip(), "%Y-%m-%d") if date_entry.strip() else default
             print(text, date)
             if date.timestamp() > greater_than:
                 valid = True  # stop asking
@@ -52,12 +53,14 @@ def ask_date(text: str, greater_than: int = -1) -> datetime:
 
 def ask_path() -> str:
     """
-    asks for a valid directory path until given one
+    asks for a valid directory path until given one, defaults to the directory the app is executed from
 
     :return: path of valid existing directory
     """
+    default = getcwd()
+
     while True:  # ask until return
-        path_input = input("directory path: ")
+        path_input = input("directory path, press enter for {}: ".format(default)).strip().strip('"') or default
 
         if path.isdir(path_input):
             return path_input

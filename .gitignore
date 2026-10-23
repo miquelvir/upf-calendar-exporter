@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+build/
+dist/
+*.spec
+calendar_export_*.csv
